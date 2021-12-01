@@ -9,7 +9,7 @@ fn parse_measurements(
         .enumerate()
         .map(|(idx, l)| (idx, l.trim()))
         .filter(|(_idx, l)| !l.is_empty())
-        .map(|(idx, l)| (idx, l.parse().map(|n| n)))
+        .map(|(idx, l)| (idx, l.parse()))
 }
 
 pub fn iter_increasing_measurements(input: &str) -> impl Iterator<Item = (usize, u16)> + '_ {
