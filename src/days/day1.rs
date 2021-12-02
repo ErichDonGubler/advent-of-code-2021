@@ -60,7 +60,7 @@ pub const INPUT: &str = include_str!("day1_part1.txt");
 
 #[test]
 fn part_1() {
-    assert_eq!(iter_increasing_measurements(INPUT).count(), 20);
+    assert_eq!(iter_increasing_measurements(INPUT).count(), 1288);
 }
 
 pub fn iter_increasing_3_window_sums(input: &str) -> impl Iterator<Item = (usize, u16)> + '_ {
