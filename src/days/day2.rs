@@ -119,3 +119,67 @@ fn part1() {
     } = submarine;
     assert_eq!(horizontal_pos.checked_mul(depth).unwrap(), 2322630)
 }
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct Part2Submarine {
+    aim: u32,
+
+    horizontal_pos: u32,
+    depth: u32,
+}
+
+impl Part2Submarine {
+    pub fn new() -> Self {
+        Self {
+            aim: 0,
+            horizontal_pos: 0,
+            depth: 0,
+        }
+    }
+
+    pub fn exec_cmd(&mut self, cmd: SubmarineCommand) {
+        let Self {
+            aim,
+            horizontal_pos,
+            depth,
+        } = self;
+        match cmd {
+            SubmarineCommand::Forward(value) => {
+                *horizontal_pos = horizontal_pos.checked_add(value.into()).unwrap();
+                *depth = depth
+                    .checked_add(aim.checked_mul(value.into()).unwrap())
+                    .unwrap();
+            }
+            SubmarineCommand::Up(value) => *aim = aim.checked_sub(value.into()).unwrap(),
+            SubmarineCommand::Down(value) => *aim = aim.checked_add(value.into()).unwrap(),
+        }
+    }
+}
+
+#[test]
+fn part2_example() {
+    let mut submarine = Part2Submarine::new();
+    SubmarineCommand::iter_from_lines(EXAMPLE).for_each(|cmd| submarine.exec_cmd(cmd));
+
+    assert_eq!(
+        submarine,
+        Part2Submarine {
+            aim: 10,
+            horizontal_pos: 15,
+            depth: 60,
+        }
+    );
+}
+
+#[test]
+fn part2() {
+    let mut submarine = Part2Submarine::new();
+    SubmarineCommand::iter_from_lines(INPUT).for_each(|cmd| submarine.exec_cmd(cmd));
+
+    let Part2Submarine {
+        aim: _,
+        horizontal_pos,
+        depth,
+    } = submarine;
+    assert_eq!(horizontal_pos.checked_mul(depth).unwrap(), 2105273490);
+}
