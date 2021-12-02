@@ -12,12 +12,12 @@ forward 2
 ";
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct Submarine {
+pub struct Part1Submarine {
     horizontal_pos: u32,
     depth: u32,
 }
 
-impl Submarine {
+impl Part1Submarine {
     pub fn new() -> Self {
         Self {
             horizontal_pos: 0,
@@ -42,11 +42,11 @@ impl Submarine {
 
 #[test]
 fn part1_example() {
-    let mut submarine = Submarine::new();
+    let mut submarine = Part1Submarine::new();
     SubmarineCommand::iter_from_lines(EXAMPLE).for_each(|cmd| submarine.exec_cmd(cmd));
     assert_eq!(
         submarine,
-        Submarine {
+        Part1Submarine {
             horizontal_pos: 15,
             depth: 10,
         }
@@ -103,17 +103,17 @@ pub const INPUT: &str = include_str!("day2_input.txt");
 
 #[test]
 fn part1() {
-    let mut submarine = Submarine::new();
+    let mut submarine = Part1Submarine::new();
     SubmarineCommand::iter_from_lines(INPUT).for_each(|cmd| submarine.exec_cmd(cmd));
     assert_eq!(
         submarine,
-        Submarine {
+        Part1Submarine {
             horizontal_pos: 1965,
             depth: 1182,
         }
     );
 
-    let Submarine {
+    let Part1Submarine {
         horizontal_pos,
         depth,
     } = submarine;
