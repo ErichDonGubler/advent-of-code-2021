@@ -1,6 +1,5 @@
-use std::{cmp::Ordering, mem::size_of};
-
 use anyhow::Context;
+use std::{cmp::Ordering, mem::size_of};
 
 pub const EXAMPLE: &str = "\
 00100
@@ -34,26 +33,28 @@ pub fn calculate_gamma(input: &str) -> (u32, usize) {
         .unwrap()
         .count();
 
+    let mut last_seen_idx = line_len - 1;
+    let idx_bit_iter = lines
+        .flat_map(|cs| cs.enumerate())
+        .inspect(move |&(idx, _c)| {
+            if idx == 0 && last_seen_idx != (line_len - 1) {
+                panic!("lines varied in length, boo");
+            }
+            last_seen_idx = idx;
+        });
+
     assert!(line_len <= size_of::<u32>() * 8);
     let mut running_avgs = vec![0i32; line_len];
 
-    lines
-        .flat_map(|cs| cs.enumerate())
-        .fold(line_len - 1, |last_idx, (idx, c)| {
-            if idx == 0 && last_idx != (line_len - 1) {
-                panic!("lines varied in length, boo");
-            }
-
-            running_avgs[idx] = running_avgs[idx]
-                .checked_add(match c {
-                    '0' => -1,
-                    '1' => 1,
-                    c => panic!("blarg invalid character {:?}", c),
-                })
-                .expect("wat, {under,over}flow?");
-
-            idx
-        });
+    idx_bit_iter.clone().for_each(|(idx, c)| {
+        running_avgs[idx] = running_avgs[idx]
+            .checked_add(match c {
+                '0' => -1,
+                '1' => 1,
+                c => panic!("blarg invalid character {:?}", c),
+            })
+            .expect("wat, {under,over}flow?");
+    });
 
     let gamma = running_avgs.iter().fold(0, |gamma, &bucket| {
         (gamma << 1)
