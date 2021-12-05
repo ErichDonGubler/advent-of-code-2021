@@ -12,7 +12,7 @@ fn parse_measurements(
         .map(|(idx, l)| (idx, l.parse()))
 }
 
-pub fn iter_increasing_measurements(input: &str) -> impl Iterator<Item = (usize, u16)> + '_ {
+fn iter_increasing_measurements(input: &str) -> impl Iterator<Item = (usize, u16)> + '_ {
     let mut measurements = parse_measurements(input).map(|(idx, res)| {
         (
             idx,
@@ -27,7 +27,7 @@ pub fn iter_increasing_measurements(input: &str) -> impl Iterator<Item = (usize,
     })
 }
 
-pub const EXAMPLE: &str = "\
+const EXAMPLE: &str = "\
 199
 200
 208
@@ -56,14 +56,14 @@ fn part_1_example() {
     );
 }
 
-pub const INPUT: &str = include_str!("day1_part1.txt");
+const INPUT: &str = include_str!("day1_part1.txt");
 
 #[test]
 fn part_1() {
     assert_eq!(iter_increasing_measurements(INPUT).count(), 1288);
 }
 
-pub fn iter_increasing_3_window_sums(input: &str) -> impl Iterator<Item = (usize, u16)> + '_ {
+fn iter_increasing_3_window_sums(input: &str) -> impl Iterator<Item = (usize, u16)> + '_ {
     let measurements = parse_measurements(input)
         .map(|(idx, res)| {
             (

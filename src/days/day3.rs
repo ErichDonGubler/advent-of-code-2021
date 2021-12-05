@@ -7,7 +7,7 @@ use std::{
 };
 use thiserror::Error as ThisError;
 
-pub const EXAMPLE: &str = "\
+const EXAMPLE: &str = "\
 00100
 11110
 10110
@@ -22,9 +22,9 @@ pub const EXAMPLE: &str = "\
 01010
 ";
 
-pub fn parse_diagnostic_report(input: &str) -> impl Clone + Iterator<Item = Sample> + '_ {
+fn parse_diagnostic_report(input: &str) -> impl Clone + Iterator<Item = Sample> + '_ {
     let lines = input.lines().map(|l| l.trim());
-
+    
     let line_len = lines
         .clone()
         .next()
@@ -51,7 +51,7 @@ pub fn parse_diagnostic_report(input: &str) -> impl Clone + Iterator<Item = Samp
         })
 }
 
-pub struct SampleBitsStats {
+struct SampleBitsStats {
     counts_of_0s_and_1s: Vec<i32>,
 }
 
@@ -85,7 +85,7 @@ impl SampleBitsStats {
     }
 }
 
-pub fn most_common_bits_part1(bit_stats: &SampleBitsStats) -> Sample {
+fn most_common_bits_part1(bit_stats: &SampleBitsStats) -> Sample {
     let most_common_bits =
         bit_stats
             .counts_of_0s_and_1s()
@@ -102,7 +102,7 @@ pub fn most_common_bits_part1(bit_stats: &SampleBitsStats) -> Sample {
     Sample::new(most_common_bits, bit_stats.sample_width())
 }
 
-pub fn most_common_bits_part2(bit_stats: &SampleBitsStats) -> Sample {
+fn most_common_bits_part2(bit_stats: &SampleBitsStats) -> Sample {
     let most_common_bits =
         bit_stats
             .counts_of_0s_and_1s()
@@ -119,7 +119,7 @@ pub fn most_common_bits_part2(bit_stats: &SampleBitsStats) -> Sample {
     Sample::new(most_common_bits, bit_stats.sample_width())
 }
 
-pub fn least_common_bits_part2(bit_stats: &SampleBitsStats) -> Sample {
+fn least_common_bits_part2(bit_stats: &SampleBitsStats) -> Sample {
     let most_common_bits =
         bit_stats
             .counts_of_0s_and_1s()
@@ -136,20 +136,20 @@ pub fn least_common_bits_part2(bit_stats: &SampleBitsStats) -> Sample {
     Sample::new(most_common_bits, bit_stats.sample_width())
 }
 
-pub fn gamma(most_common_bits: Sample) -> Sample {
+fn gamma(most_common_bits: Sample) -> Sample {
     most_common_bits
 }
 
-pub fn epsilon(gamma: Sample) -> Sample {
+fn epsilon(gamma: Sample) -> Sample {
     !gamma
 }
 
-pub fn power_consumption(gamma: Sample, epsilon: Sample) -> u64 {
+fn power_consumption(gamma: Sample, epsilon: Sample) -> u64 {
     gamma.checked_mul(&epsilon).unwrap()
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct Sample {
+struct Sample {
     data: u32,
     width: usize,
 }
@@ -191,10 +191,6 @@ impl Sample {
         !(!0 << width)
     }
 
-    pub fn bitmask(&self) -> u32 {
-        Self::mask(self.width)
-    }
-
     fn max_width() -> usize {
         size_of::<u32>() * 8
     }
@@ -220,11 +216,6 @@ impl Sample {
             data: data & Self::mask(width),
             width,
         }
-    }
-
-    pub fn into_inner(self) -> u32 {
-        let Self { data, width: _ } = self;
-        data
     }
 
     pub fn width(&self) -> usize {
@@ -277,7 +268,7 @@ fn part1_example() {
     assert_eq!(power_consumption(gamma, epsilon), 198);
 }
 
-pub const INPUT: &str = include_str!("day3_input.txt");
+const INPUT: &str = include_str!("day3_input.txt");
 
 #[test]
 fn part1() {
@@ -285,11 +276,11 @@ fn part1() {
     assert_eq!(power_consumption(gamma, epsilon), 2003336);
 }
 
-pub fn o2_generator_rating(report_samples_iter: impl Iterator<Item = Sample>) -> (usize, Sample) {
+fn o2_generator_rating(report_samples_iter: impl Iterator<Item = Sample>) -> (usize, Sample) {
     exactly_one_for_bit_criteria(report_samples_iter, most_common_bits_part2).unwrap()
 }
 
-pub fn co2_scrubber_rating(report_samples_iter: impl Iterator<Item = Sample>) -> (usize, Sample) {
+fn co2_scrubber_rating(report_samples_iter: impl Iterator<Item = Sample>) -> (usize, Sample) {
     exactly_one_for_bit_criteria(report_samples_iter, least_common_bits_part2).unwrap()
 }
 
@@ -324,14 +315,14 @@ fn exactly_one_for_bit_criteria(
     })
 }
 
-pub fn life_support_rating(o2_generator_rating: Sample, co2_scrubber_rating: Sample) -> u64 {
+fn life_support_rating(o2_generator_rating: Sample, co2_scrubber_rating: Sample) -> u64 {
     o2_generator_rating
         .checked_mul(&co2_scrubber_rating)
         .unwrap()
 }
 
 #[derive(Debug, ThisError)]
-pub enum BitCriteriaSelectionError {
+enum BitCriteriaSelectionError {
     #[error("no samples were provided")]
     NoSamplesProvided,
     #[error("not enough candidates eliminated")]
