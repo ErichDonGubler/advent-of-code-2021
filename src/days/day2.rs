@@ -2,7 +2,7 @@ use std::str::FromStr;
 
 use anyhow::{anyhow, bail, Context};
 
-pub const EXAMPLE: &str = "\
+const EXAMPLE: &str = "\
 forward 5
 down 5
 forward 8
@@ -12,7 +12,7 @@ forward 2
 ";
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct Part1Submarine {
+struct Part1Submarine {
     horizontal_pos: u32,
     depth: u32,
 }
@@ -53,7 +53,7 @@ fn part1_example() {
     );
 }
 
-pub enum SubmarineCommand {
+enum SubmarineCommand {
     Forward(u8),
     Up(u8),
     Down(u8),
@@ -99,7 +99,7 @@ impl FromStr for SubmarineCommand {
     }
 }
 
-pub const INPUT: &str = include_str!("day2_input.txt");
+const INPUT: &str = include_str!("day2_input.txt");
 
 #[test]
 fn part1() {
@@ -121,7 +121,7 @@ fn part1() {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct Part2Submarine {
+struct Part2Submarine {
     aim: u32,
 
     horizontal_pos: u32,
