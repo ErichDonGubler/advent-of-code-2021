@@ -116,7 +116,7 @@ fn part1_example() {
     );
 
     assert_eq!(
-        winners(&bingo_game),
+        winners(&bingo_game).next(),
         Some(Winners {
             number_idx: 11,
             winners: vec![((2, vec![(2, "row", 0, [14, 21, 17, 24, 4,])]), 188)],
@@ -130,61 +130,66 @@ struct Winners {
     winners: Vec<((usize, Vec<(usize, &'static str, usize, [u8; 5])>), u32)>,
 }
 
-fn winners(bingo_game: &BingoGame) -> Option<Winners> {
+fn winners(bingo_game: &BingoGame) -> impl Iterator<Item = Winners> + '_ {
     let BingoGame {
         numbers_drawn: next_numbers,
         player_boards,
     } = bingo_game;
 
     let mut numbers_drawn = HashSet::new();
-    for (number_idx, number) in next_numbers.into_iter().enumerate() {
-        numbers_drawn.insert(number);
+    next_numbers
+        .into_iter()
+        .enumerate()
+        .filter_map(move |(number_idx, number)| {
+            numbers_drawn.insert(number);
 
-        let winners = player_boards
-            .iter()
-            .enumerate()
-            .filter_map(|(player_idx, board)| {
-                // check rows
-                let winning_rows = board
-                    .iter()
-                    .enumerate()
-                    .filter(|(_idx, row)| row.iter().all(|number| numbers_drawn.contains(number)));
+            let winners = player_boards
+                .iter()
+                .enumerate()
+                .filter_map(|(player_idx, board)| {
+                    // check rows
+                    let winning_rows = board.iter().enumerate().filter(|(_idx, row)| {
+                        row.iter().all(|number| numbers_drawn.contains(number))
+                    });
 
-                // check columns
-                let [one, two, three, four, five] = &board;
-                let winning_columns = izip!(one, two, three, four, five)
-                    .map(|(&one, &two, &three, &four, &five)| [one, two, three, four, five])
-                    .enumerate()
-                    .filter(|(_idx, col)| col.iter().all(|number| numbers_drawn.contains(number)));
+                    // check columns
+                    let [one, two, three, four, five] = &board;
+                    let winning_columns = izip!(one, two, three, four, five)
+                        .map(|(&one, &two, &three, &four, &five)| [one, two, three, four, five])
+                        .enumerate()
+                        .filter(|(_idx, col)| {
+                            col.iter().all(|number| numbers_drawn.contains(number))
+                        });
 
-                let winning_triggers = winning_rows
-                    .map(|(idx, row)| (player_idx, "row", idx, row.clone()))
-                    .chain(winning_columns.map(|(idx, col)| (player_idx, "column", idx, col)))
-                    .collect::<Vec<_>>();
+                    let winning_triggers = winning_rows
+                        .map(|(idx, row)| (player_idx, "row", idx, row.clone()))
+                        .chain(winning_columns.map(|(idx, col)| (player_idx, "column", idx, col)))
+                        .collect::<Vec<_>>();
 
-                (!winning_triggers.is_empty())
-                    .then(|| (player_idx, winning_triggers))
-                    .map(|stuff| {
-                        (
-                            stuff,
-                            board
-                                .iter()
-                                .flat_map(|row| row.iter().copied())
-                                .filter(|n| !numbers_drawn.contains(n))
-                                .fold(0u32, |acc, n| acc + u32::from(n)),
-                        )
-                    })
-            })
-            .collect::<Vec<_>>();
+                    (!winning_triggers.is_empty())
+                        .then(|| (player_idx, winning_triggers))
+                        .map(|stuff| {
+                            (
+                                stuff,
+                                board
+                                    .iter()
+                                    .flat_map(|row| row.iter().copied())
+                                    .filter(|n| !numbers_drawn.contains(n))
+                                    .fold(0u32, |acc, n| acc + u32::from(n)),
+                            )
+                        })
+                })
+                .collect::<Vec<_>>();
 
-        if !winners.is_empty() {
-            return Some(Winners {
-                number_idx,
-                winners,
-            });
-        }
-    }
-    None
+            if !winners.is_empty() {
+                return Some(Winners {
+                    number_idx,
+                    winners,
+                });
+            } else {
+                None
+            }
+        })
 }
 
 const INPUT: &str = include_str!("./day4_input.txt");
@@ -192,7 +197,7 @@ const INPUT: &str = include_str!("./day4_input.txt");
 #[test]
 fn part1() {
     let bingo_game = INPUT.parse::<BingoGame>().unwrap();
-    let winners = winners(&bingo_game).unwrap();
+    let winners = winners(&bingo_game).next().unwrap();
     assert_eq!(
         winners,
         Winners {
@@ -208,3 +213,6 @@ fn part1() {
         45031,
     );
 }
+
+#[test]
+fn part2_example() {}
