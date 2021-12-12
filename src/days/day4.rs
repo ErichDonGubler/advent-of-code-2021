@@ -58,8 +58,7 @@ impl FromStr for BingoGame {
                 .take(5)
                 .map(|l| {
                     <[u8; 5]>::try_from(
-                        dbg!(l)
-                            .split_whitespace()
+                        l.split_whitespace()
                             .map(|t| t.parse().unwrap())
                             .collect::<Vec<_>>(),
                     )
@@ -119,7 +118,7 @@ fn part1_example() {
         winners(&bingo_game).next(),
         Some(Winners {
             number_idx: 11,
-            winners: vec![((2, vec![(2, "row", 0, [14, 21, 17, 24, 4,])]), 188)],
+            winners: vec![((2, vec![("row", 0, [14, 21, 17, 24, 4,])]), 188)],
         }),
     );
 }
@@ -127,7 +126,7 @@ fn part1_example() {
 #[derive(Debug, Eq, PartialEq)]
 struct Winners {
     number_idx: usize,
-    winners: Vec<((usize, Vec<(usize, &'static str, usize, [u8; 5])>), u32)>,
+    winners: Vec<((usize, Vec<(&'static str, usize, [u8; 5])>), u32)>,
 }
 
 fn winners(bingo_game: &BingoGame) -> impl Iterator<Item = Winners> + '_ {
@@ -137,15 +136,18 @@ fn winners(bingo_game: &BingoGame) -> impl Iterator<Item = Winners> + '_ {
     } = bingo_game;
 
     let mut numbers_drawn = HashSet::new();
+    let mut previous_winners = HashSet::new();
     next_numbers
         .into_iter()
         .enumerate()
         .filter_map(move |(number_idx, number)| {
+            eprintln!("Drawing number {}", number);
             numbers_drawn.insert(number);
 
             let winners = player_boards
                 .iter()
                 .enumerate()
+                .filter(|(player_idx, _board)| !previous_winners.contains(player_idx))
                 .filter_map(|(player_idx, board)| {
                     // check rows
                     let winning_rows = board.iter().enumerate().filter(|(_idx, row)| {
@@ -162,26 +164,30 @@ fn winners(bingo_game: &BingoGame) -> impl Iterator<Item = Winners> + '_ {
                         });
 
                     let winning_triggers = winning_rows
-                        .map(|(idx, row)| (player_idx, "row", idx, row.clone()))
-                        .chain(winning_columns.map(|(idx, col)| (player_idx, "column", idx, col)))
+                        .map(|(idx, row)| ("row", idx, row.clone()))
+                        .chain(winning_columns.map(|(idx, col)| ("column", idx, col)))
                         .collect::<Vec<_>>();
 
                     (!winning_triggers.is_empty())
                         .then(|| (player_idx, winning_triggers))
                         .map(|stuff| {
+                            eprintln!("summing unmarked numbers for player {}", player_idx);
                             (
                                 stuff,
                                 board
                                     .iter()
                                     .flat_map(|row| row.iter().copied())
                                     .filter(|n| !numbers_drawn.contains(n))
-                                    .fold(0u32, |acc, n| acc + u32::from(n)),
+                                    .fold(0u32, |acc, n| acc + u32::from(dbg!(n))),
                             )
                         })
                 })
                 .collect::<Vec<_>>();
 
             if !winners.is_empty() {
+                winners.iter().for_each(|((player_idx, ..), ..)| {
+                    previous_winners.insert(*player_idx);
+                });
                 return Some(Winners {
                     number_idx,
                     winners,
@@ -202,7 +208,7 @@ fn part1() {
         winners,
         Winners {
             number_idx: 16,
-            winners: vec![((45, vec![(45, "column", 2, [49, 0, 13, 69, 57])]), 919)]
+            winners: vec![((45, vec![("column", 2, [49, 0, 13, 69, 57])]), 919)],
         }
     );
 
@@ -215,4 +221,41 @@ fn part1() {
 }
 
 #[test]
-fn part2_example() {}
+fn part2_example() {
+    let bingo_game = EXAMPLE.parse::<BingoGame>().unwrap();
+    let winners = winners(&bingo_game).last().unwrap();
+    assert_eq!(
+        winners,
+        Winners {
+            number_idx: 14,
+            winners: vec![((1, vec![("column", 2, [0, 13, 7, 10, 16])]), 148)],
+        }
+    );
+
+    assert_eq!(
+        u32::from(bingo_game.numbers_drawn[winners.number_idx])
+            .checked_mul(winners.winners[0].1)
+            .unwrap(),
+        1924,
+    );
+}
+
+#[test]
+fn part2() {
+    let bingo_game = INPUT.parse::<BingoGame>().unwrap();
+    let winners = winners(&bingo_game).last().unwrap();
+    assert_eq!(
+        winners,
+        Winners {
+            number_idx: 86,
+            winners: vec![((78, vec![("row", 1, [4, 96, 50, 9, 8])]), 321)],
+        }
+    );
+
+    assert_eq!(
+        u32::from(bingo_game.numbers_drawn[winners.number_idx])
+            .checked_mul(winners.winners[0].1)
+            .unwrap(),
+        2568,
+    );
+}
